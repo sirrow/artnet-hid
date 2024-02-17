@@ -5,9 +5,6 @@ import time
 import sys
 import hid
 
-vendor_id     = 0x534B
-product_id    = 0x1020
-
 usage_page    = 0xFF60
 usage         = 0x61
 report_length = 32
@@ -15,7 +12,7 @@ report_length = 32
 global interface
 
 def get_raw_hid_interface():
-    device_interfaces = hid.enumerate(vendor_id, product_id)
+    device_interfaces = hid.enumerate(0, 0)
     raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
 
     if len(raw_hid_interfaces) == 0:
@@ -26,8 +23,6 @@ def get_raw_hid_interface():
     print(f"Product: {interface.product}")
 
     return interface
-
-
 
 # create a callback to handle data when received
 def test_callback(rdata):
@@ -40,9 +35,17 @@ def test_callback(rdata):
     request_data = [0x00] * (report_length + 1) # First byte is Report ID
     request_data[1:len(data) + 1] = data
     request_report = bytes(request_data)
-    interface.write(request_report)
+
+    device_interfaces = hid.enumerate(0, 0)
+    raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
 
 
+    for raw_hid in raw_hid_interfaces:
+        try:
+            interface = hid.Device(path=raw_hid['path'])
+            interface.write(request_report)
+        except Exception as e:
+            print(e)
 
 # a Server object initializes with the following data
 # universe 			= DEFAULT 0
@@ -54,9 +57,6 @@ def test_callback(rdata):
 
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
-    interface.close()
-    global a
-    del a
     exit(0)
 
 
