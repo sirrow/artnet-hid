@@ -60,9 +60,9 @@ def signal_handler(sig, frame):
     exit(0)
 
 
-device_interfaces = hid.enumerate(vendor_id, product_id)
-raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
-interface = hid.Device(path=raw_hid_interfaces[0]['path'])
+#device_interfaces = hid.enumerate(vendor_id, product_id)
+#raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
+#interface = hid.Device(path=raw_hid_interfaces[0]['path'])
 
 # You can use universe only
 universe = 1
