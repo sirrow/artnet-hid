@@ -14,7 +14,7 @@ def test_callback(rdata):
     """Test function to receive callback data."""
     # the received data is an array
     # of the channels value (no headers)
-    print('Received new data \n', rdata)
+    # print('Received new data \n', rdata)
     data = rdata[0:3]
 
     request_data = [0x00] * (report_length + 1) # First byte is Report ID
