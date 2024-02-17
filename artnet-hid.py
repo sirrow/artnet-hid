@@ -9,21 +9,6 @@ usage_page    = 0xFF60
 usage         = 0x61
 report_length = 32
 
-global interface
-
-def get_raw_hid_interface():
-    device_interfaces = hid.enumerate(0, 0)
-    raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
-
-    if len(raw_hid_interfaces) == 0:
-        return None
-
-    interface = hid.Device(path=raw_hid_interfaces[0]['path'])
-    print(f"Manufacturer: {interface.manufacturer}")
-    print(f"Product: {interface.product}")
-
-    return interface
-
 # create a callback to handle data when received
 def test_callback(rdata):
     """Test function to receive callback data."""
@@ -47,22 +32,10 @@ def test_callback(rdata):
         except Exception as e:
             print(e)
 
-# a Server object initializes with the following data
-# universe 			= DEFAULT 0
-# subnet   			= DEFAULT 0
-# net      			= DEFAULT 0
-# setSimplified     = DEFAULT True
-# callback_function = DEFAULT None
-
 
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     exit(0)
-
-
-#device_interfaces = hid.enumerate(vendor_id, product_id)
-#raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
-#interface = hid.Device(path=raw_hid_interfaces[0]['path'])
 
 # You can use universe only
 universe = 1
@@ -75,17 +48,6 @@ signal.signal(signal.SIGINT, signal_handler)
 # the return is an id for the listener
 u1_listener = a.register_listener(
     universe, callback_function=test_callback)
-
-
-# or disable simplified mode to use nets and subnets as per spec
-# subnet = 1 (would have been universe 17 in simplified mode)
-# net = 0
-# a.register_listener(universe, sub=subnet, net=net,
-#                    setSimplified=False, callback_function=test_callback)
-
-
-# print object state
-print(a)
 
 # giving it some time for the demo
 while True:
