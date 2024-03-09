@@ -1,6 +1,7 @@
 from stupidArtnet import StupidArtnetServer
 import signal 
 import time
+import argparse
 
 import sys
 import hid
@@ -69,14 +70,17 @@ def test_callback(rdata):
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     exit(0)
+    
 
-# You can use universe only
-universe = 1
+parser = argparse.ArgumentParser(description='artnet to hid') 
+parser.add_argument('-u', type=int, help='universe to listen to', default=1)
+universe = parser.parse_args().u
+
 a = StupidArtnetServer()
 
 signal.signal(signal.SIGINT, signal_handler)
 
-# For every universe we would like to receive,
+# For every universe we would like to receive,parser = argparse.ArgumentParser(description='このプログラムの説明（なくてもよい）') 
 # add a new listener with a optional callback
 # the return is an id for the listener
 u1_listener = a.register_listener(
