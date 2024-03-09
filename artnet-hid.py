@@ -43,22 +43,25 @@ def test_callback(rdata):
     # print('Received new data \n', rdata)
     #data = rdata[0:3]
 
+    #print(rdata)
+
     request_data = [0x00] * (report_length + 1) # First byte is Report ID
     #request_data[1:len(data) + 1] = data
     request_data[1] = 1 #HSV
-    h, s ,v = rgb_to_hsv(rdata[0], rdata[1], rdata[2])
-    request_data[2:5] = hsv_qmk_range(h, s, v)
-    print(request_data[2:5])
-    request_report = bytes(request_data)
 
     device_interfaces = hid.enumerate(0, 0)
     raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
 
-
+    keynum = 0
     for raw_hid in raw_hid_interfaces:
         try:
             interface = hid.Device(path=raw_hid['path'])
+            addr = int(((keynum + 1) * 128) / (len(raw_hid_interfaces) + 1))
+            h, s ,v = rgb_to_hsv(rdata[0+(addr*3)], rdata[1+(addr*3)], rdata[2+(addr*3)])
+            request_data[2:5] = hsv_qmk_range(h, s, v)
+            request_report = bytes(request_data)
             interface.write(request_report)
+            keynum += 1
         except Exception as e:
             print(e)
 
