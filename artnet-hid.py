@@ -37,7 +37,7 @@ def hsv_qmk_range(h, s, v):
     return int(h/360*255), int((s/100)*255), int((v/100)*255)
 
 # create a callback to handle data when received
-def test_callback(rdata):
+def artnet_callback(rdata):
     """Test function to receive callback data."""
     # the received data is an array
     # of the channels value (no headers)
@@ -70,21 +70,21 @@ def test_callback(rdata):
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     exit(0)
-    
+
 
 parser = argparse.ArgumentParser(description='artnet to hid') 
 parser.add_argument('-u', type=int, help='universe to listen to', default=1)
 universe = parser.parse_args().u
 
-a = StupidArtnetServer()
+artnetserver = StupidArtnetServer()
 
 signal.signal(signal.SIGINT, signal_handler)
 
 # For every universe we would like to receive,parser = argparse.ArgumentParser(description='このプログラムの説明（なくてもよい）') 
 # add a new listener with a optional callback
 # the return is an id for the listener
-u1_listener = a.register_listener(
-    universe, callback_function=test_callback)
+u1_listener = artnetserver.register_listener(
+    universe, callback_function=artnet_callback)
 
 # giving it some time for the demo
 while True:
