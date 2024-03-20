@@ -104,18 +104,7 @@ def artnet_callback(rdata):
     request_data = [0x00] * (report_length + 1) # First byte is Report ID
     #request_data[1:len(data) + 1] = data
     request_data[1] = 1 #HSV
-
-    device_interfaces = hid.enumerate(0, 0)
-    raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
-
     interfaces = InterfacesSingleton.getInstance()
-    for raw_hid in raw_hid_interfaces:
-        try:
-            if interfaces.get_interface(raw_hid['path']) == None:
-                interfaces.add_interface(raw_hid)
-        except Exception as e:
-            print(e)
-
     keybords = interfaces.get_interface_enabled_count()
     keynum = 0
     for interface in interfaces.get_interface_iterator():
@@ -135,6 +124,18 @@ def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     exit(0)
 
+def check_hid_interface():
+    device_interfaces = hid.enumerate(0, 0)
+    raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
+
+    interfaces = InterfacesSingleton.getInstance()
+    for raw_hid in raw_hid_interfaces:
+        try:
+            if interfaces.get_interface(raw_hid['path']) == None:
+                interfaces.add_interface(raw_hid)
+        except Exception as e:
+            print(e)
+
 
 parser = argparse.ArgumentParser(description='artnet to hid') 
 parser.add_argument('-u', type=int, help='universe to listen to', default=1)
@@ -143,7 +144,7 @@ universe = parser.parse_args().u
 artnetserver = StupidArtnetServer()
 
 signal.signal(signal.SIGINT, signal_handler)
-
+check_hid_interface()
 # add a new listener with a optional callback
 # the return is an id for the listener
 u1_listener = artnetserver.register_listener(
@@ -151,7 +152,7 @@ u1_listener = artnetserver.register_listener(
 
 # giving it some time for the demo
 while True:
-    time.sleep(3)
-
+    time.sleep(1)
+    check_hid_interface()
 
 
