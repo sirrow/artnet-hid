@@ -1,10 +1,8 @@
 from stupidArtnet import StupidArtnetServer
 import signal 
-import time
 import argparse
 import pyudev
 
-import sys
 import hid
 
 usage_page    = 0xFF60
