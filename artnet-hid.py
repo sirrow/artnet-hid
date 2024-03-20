@@ -52,9 +52,9 @@ def artnet_callback(rdata):
 
     device_interfaces = hid.enumerate(0, 0)
     raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
-
+    raw_hid_interfaces_sorted = sorted(raw_hid_interfaces, key=lambda k: int(k['path'][len('/dev/hidraw'):]))
     keynum = 0
-    for raw_hid in raw_hid_interfaces:
+    for raw_hid in raw_hid_interfaces_sorted:
         try:
             interface = hid.Device(path=raw_hid['path'])
             addr = int(((keynum + 1) * 128) / (len(raw_hid_interfaces) + 1))
