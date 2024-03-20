@@ -2,6 +2,7 @@ from stupidArtnet import StupidArtnetServer
 import signal 
 import time
 import argparse
+import pyudev
 
 import sys
 import hid
@@ -150,9 +151,9 @@ check_hid_interface()
 u1_listener = artnetserver.register_listener(
     universe, callback_function=artnet_callback)
 
-# giving it some time for the demo
-while True:
-    time.sleep(1)
-    check_hid_interface()
-
-
+context = pyudev.Context()
+monitor = pyudev.Monitor.from_netlink(context)
+monitor.start()
+for device in iter(monitor.poll, None):
+    if(device.action == 'add'):
+        check_hid_interface()
