@@ -107,10 +107,9 @@ def artnet_callback(rdata):
 
     device_interfaces = hid.enumerate(0, 0)
     raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
-    raw_hid_interfaces_sorted = sorted(raw_hid_interfaces, key=lambda k: int(k['path'][len('/dev/hidraw'):]))
 
     interfaces = InterfacesSingleton.getInstance()
-    for raw_hid in raw_hid_interfaces_sorted:
+    for raw_hid in raw_hid_interfaces:
         try:
             if interfaces.get_interface(raw_hid['path']) == None:
                 interfaces.add_interface(raw_hid)
