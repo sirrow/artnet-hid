@@ -36,6 +36,61 @@ def hsv_qmk_range(h, s, v):
     """Convert HSV to QMK range."""
     return int(h/360*255), int((s/100)*255), int((v/100)*255)
 
+
+class InterfaceState:
+    def __init__(self, raw_hid):
+        self._disabled = False
+        self._path = raw_hid['path']
+        self._devfd = hid.Device(path=raw_hid['path'])
+
+    def disable(self):
+        self._disabled = True
+        self._devfd.close()
+
+    def get_devfd(self):
+        return self._devfd
+
+class InterfacesSingleton:
+    """Singleton to store the interfaces."""
+    __instance = None
+
+    @staticmethod
+    def getInstance():
+        """Static access method."""
+        if InterfacesSingleton.__instance == None:
+            InterfacesSingleton()
+        return InterfacesSingleton.__instance
+
+    def __init__(self):
+        """Virtually private constructor."""
+        if InterfacesSingleton.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            self._interfaces = []
+            InterfacesSingleton.__instance = self
+
+    def add_interface(self, raw_hid):
+        self._interfaces.append(InterfaceState(raw_hid))
+
+    def get_interface(self, path):
+        for interface in self._interfaces:
+            if interface._path == path:
+                if interface._disabled == False:
+                    return interface
+        return None
+
+    def get_interface_iterator(self):
+        for interface in self._interfaces:
+            if interface._disabled == False:
+                yield interface
+
+    def get_interface_enabled_count(self):
+        count = 0
+        for interface in self._interfaces:
+            if interface._disabled == False:
+                count += 1
+        return count
+
 # create a callback to handle data when received
 def artnet_callback(rdata):
     """Test function to receive callback data."""
@@ -53,18 +108,28 @@ def artnet_callback(rdata):
     device_interfaces = hid.enumerate(0, 0)
     raw_hid_interfaces = [i for i in device_interfaces if i['usage_page'] == usage_page and i['usage'] == usage]
     raw_hid_interfaces_sorted = sorted(raw_hid_interfaces, key=lambda k: int(k['path'][len('/dev/hidraw'):]))
-    keynum = 0
+
+    interfaces = InterfacesSingleton.getInstance()
     for raw_hid in raw_hid_interfaces_sorted:
         try:
-            interface = hid.Device(path=raw_hid['path'])
-            addr = int(((keynum + 1) * 128) / (len(raw_hid_interfaces) + 1))
-            h, s ,v = rgb_to_hsv(rdata[0+(addr*3)], rdata[1+(addr*3)], rdata[2+(addr*3)])
-            request_data[2:5] = hsv_qmk_range(h, s, v)
-            request_report = bytes(request_data)
-            interface.write(request_report)
-            keynum += 1
+            if interfaces.get_interface(raw_hid['path']) == None:
+                interfaces.add_interface(raw_hid)
         except Exception as e:
             print(e)
+
+    keybords = interfaces.get_interface_enabled_count()
+    keynum = 0
+    for interface in interfaces.get_interface_iterator():
+        addr = int(((keynum + 1) * 128) / (keybords + 1))
+        h, s ,v = rgb_to_hsv(rdata[0+(addr*3)], rdata[1+(addr*3)], rdata[2+(addr*3)])
+        request_data[2:5] = hsv_qmk_range(h, s, v)
+        request_report = bytes(request_data)
+        try:
+            interface.get_devfd().write(request_report)
+        except Exception as e:
+            print(e)
+            interface.disable()
+        keynum += 1
 
 
 def signal_handler(sig, frame):
