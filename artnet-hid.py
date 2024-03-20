@@ -80,7 +80,6 @@ artnetserver = StupidArtnetServer()
 
 signal.signal(signal.SIGINT, signal_handler)
 
-# For every universe we would like to receive,parser = argparse.ArgumentParser(description='このプログラムの説明（なくてもよい）') 
 # add a new listener with a optional callback
 # the return is an id for the listener
 u1_listener = artnetserver.register_listener(
